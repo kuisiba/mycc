@@ -12,9 +12,8 @@ typedef enum {
     TK_EOF,
 } TokenKind;
 
-typedef struct Token Token;
-
 // トークン型
+typedef struct Token Token;
 struct Token {
     TokenKind kind;
     Token *next;
@@ -61,7 +60,7 @@ void expect(char op) {
     token = token->next;
 }
 
-int expect_number() {
+int expect_number(void) {
     if (token->kind != TK_NUM)
         error_at(token->str, "expected a number");
     int val = token->val;
@@ -69,7 +68,7 @@ int expect_number() {
     return val;
 }
 
-bool at_eof() {
+bool at_eof(void) {
     return token->kind == TK_EOF;
 }
 
@@ -81,7 +80,7 @@ Token *new_token(TokenKind kind, Token *cur, char *str) {
     return tok;
 }
 
-Token *tokenize() {
+Token *tokenize(void) {
     char *p = user_input;
     Token head;
     head.next = NULL;
@@ -93,7 +92,7 @@ Token *tokenize() {
             continue;
         }
 
-        if (*p == '+' || *p == '-') {
+        if (ispunct(*p)) {
             cur = new_token(TK_RESERVED, cur, p++);
             continue;
         }
@@ -116,18 +115,17 @@ typedef enum {
     ND_ADD,
     ND_SUB,
     ND_MUL,
-    ND_DIV
+    ND_DIV,
     ND_NUM,
 } NodeKind;
 
 typedef struct Node Node;
-
 struct Node {
     NodeKind kind;
     Node *lhs;
     Node *rhs;
     int val;
-}
+};
 
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
     Node *node = calloc(1, sizeof(Node));
@@ -144,7 +142,11 @@ Node *new_node_num(int val) {
     return node;
 }
 
-Node *expr() {
+Node *expr(void);
+Node *mul(void);
+Node *primary(void);
+
+Node *expr(void) {
     Node *node = mul();
 
     for (;;) {
@@ -157,7 +159,7 @@ Node *expr() {
     }
 }
 
-Node *mul() {
+Node *mul(void) {
     Node *node = primary();
 
     for (;;) {
@@ -170,7 +172,7 @@ Node *mul() {
     }
 }
 
-Node *primary() {
+Node *primary(void) {
     if (consume('(')) {
         Node *node = expr();
         expect(')');
@@ -218,7 +220,7 @@ int main(int argc, char **argv) {
     }
 
     user_input = argv[1];
-    token = tokenize(user_input);
+    token = tokenize();
     Node *node = expr();
 
     printf(".intel_syntax noprefix\n");
